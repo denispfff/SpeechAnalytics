@@ -4,6 +4,7 @@ import (
 	"SpeechAnalytics/pkg/database"
 	"SpeechAnalytics/pkg/logger"
 	"SpeechAnalytics/pkg/repositories"
+	"SpeechAnalytics/pkg/server"
 	"SpeechAnalytics/pkg/services"
 	"context"
 	"fmt"
@@ -36,5 +37,11 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	services.StartProcessing(ctx, auth, modelUri)
+	go services.StartProcessing(ctx, auth, modelUri)
+
+	srv := server.New()
+
+	if err := srv.HttpServer.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }

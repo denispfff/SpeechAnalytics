@@ -38,3 +38,11 @@ func SaveCall(call *models.Call) error {
 	return database.DB.Db.Save(call).Error
 
 }
+
+func GetAllCalls() ([]*models.Call, error) {
+	var calls []*models.Call
+	status := models.CompletedProcessingStatus
+	// Добавляем Preload для загрузки связанных сущностей SpeakerStatistics
+	err := database.DB.Db.Preload("SpeakerStatistics").Where("status = ?", status).Find(&calls).Error
+	return calls, err
+}
