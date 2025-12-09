@@ -1,4 +1,4 @@
-FROM golang:1.24
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -10,11 +10,19 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o web_server ./cmd/main.go
 
-EXPOSE 8080
+FROM alpine:latest
 
+WORKDIR /app
+
+RUN apk add --no-cache tzdata && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime && echo "Europe/Moscow" > /etc/timezone
+
+# Скопируем готовый бинарник из слоя сборки
+COPY --from=builder /app/web_server .
+
+# Открываем порт и задаем переменную окружения
+EXPOSE 8080
 ENV TODO_PORT="8080"
 
+# Запускаем сервер с указанием команды help по умолчанию
 ENTRYPOINT ["./web_server"]
 CMD ["--help"]
-
-# docker run -d --rm --name my-server-container -p 8080:8080 my-app-image --port=8080 --dbfile=scheduler.db --password=12345

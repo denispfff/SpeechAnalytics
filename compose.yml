@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ya_analytics_db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
+
+  app:
+    build: .
+    container_name: ya_analytics_app
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      API_KEY: ${API_KEY}
+      MODEL_URI: ${MODEL_URI}
+    ports:
+      - "8080:8080"
+    volumes:
+      - tmp_storage:/app/tmp
+    networks:
+      - backend_net
+
+networks:
+  backend_net:
+
+volumes:
+  pg_data:
+  tmp_storage:
