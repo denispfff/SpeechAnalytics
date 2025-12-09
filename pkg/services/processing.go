@@ -45,7 +45,7 @@ func RpcSendNew(ctx *context.Context) {
 	mutex := &sync.Mutex{}
 
 	var calls []*models.Call
-	calls, err := repositories.GetCallByStatus(models.NewProcessingStatus)
+	calls, err := repositories.GetCallByStatus(models.Processing)
 	if err != nil {
 		log.Printf("ошибка получения новых файлов")
 		return
@@ -61,10 +61,10 @@ func RpcSendNew(ctx *context.Context) {
 		go func(call *models.Call) {
 			defer wg.Done()
 
-			call.Status = models.ProcessingStatus
+			call.Status = models.Processing
 
 			if err := SendToRecognize(call); err != nil {
-				call.Status = models.FailedProcessingStatus
+				call.Status = models.Error
 				log.Println(err)
 			}
 
@@ -86,7 +86,7 @@ func RpcGetRecognition(ctx *context.Context) {
 	mutex := &sync.Mutex{}
 
 	var calls []*models.Call
-	calls, err := repositories.GetCallByStatus(models.ProcessingStatus)
+	calls, err := repositories.GetCallByStatus(models.Processing)
 	if err != nil {
 		log.Printf("ошибка получения новых запросов")
 		return
@@ -104,12 +104,16 @@ func RpcGetRecognition(ctx *context.Context) {
 			_, err := GetRecognition(call)
 
 			if err != nil {
-				call.Status = models.FailedProcessingStatus
+				call.Status = models.Error
 				log.Println(err)
+				err = repositories.MoveByStatus(call, models.Processing, models.Error)
+				if err != nil {
+					log.Println("Ошибка перемещения файла:", err)
+				}
 			}
 
 			// В случае, если статус не изменился - пропускаем обработку
-			if call.Status == models.ProcessingStatus {
+			if call.Status == models.Processing {
 				return
 			}
 
@@ -120,7 +124,7 @@ func RpcGetRecognition(ctx *context.Context) {
 				log.Println("Ошибка обновления файла:", err)
 			}
 
-			err = repositories.MoveDone(call)
+			err = repositories.MoveByStatus(call, models.Processing, models.Success)
 			if err != nil {
 				log.Println("Ошибка перемещения файла:", err)
 			}

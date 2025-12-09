@@ -9,16 +9,15 @@ import (
 
 func CreateCall(fileName string) (models.Call, error) {
 	var newCall models.Call
+	var err error
 
 	newCall.FileName = fileName
-	newCall.Status = models.NewProcessingStatus
+	newCall.Status = models.Processing
 
-	created, err := time.Parse("2006-01-02__15-04-05", fileName[:20])
+	newCall.Date, err = time.Parse("2006-01-02__15-04-05", fileName[:20])
 	if err != nil {
-		created = time.Now()
+		newCall.Date = time.Now()
 	}
-
-	newCall.Date = created
 
 	tmp := strings.Split(fileName, "__")
 	newCall.OperatorName = strings.Split(tmp[3], "@")[0]
@@ -41,7 +40,7 @@ func SaveCall(call *models.Call) error {
 
 func GetAllCalls() ([]*models.Call, error) {
 	var calls []*models.Call
-	status := models.CompletedProcessingStatus
+	status := models.Success
 	// Добавляем Preload для загрузки связанных сущностей SpeakerStatistics
 	err := database.DB.Db.Preload("SpeakerStatistics").Where("status = ?", status).Find(&calls).Error
 	return calls, err

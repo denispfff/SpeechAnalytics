@@ -11,17 +11,13 @@ import (
 )
 
 const (
-	rootPath      = "./tmp/"
-	newPath       = "./tmp/new/"
-	inProcessPath = "./tmp/in_process/"
-	donePath      = "./tmp/done/"
-
-	postfix = ".mp3"
+	rootPath = "./tmp/"
+	postfix  = ".mp3"
 )
 
 func InitFilePaths() {
-	paths := []string{rootPath, newPath, inProcessPath, donePath}
-	for _, path := range paths {
+	for _, status := range []models.StatusType{models.New, models.Processing, models.Success, models.Error} {
+		path := filepath.Join(rootPath, string(status))
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			err = os.MkdirAll(path, 0755)
 			if err != nil {
@@ -32,6 +28,7 @@ func InitFilePaths() {
 }
 
 func ProcessNewFiles() error {
+	newPath := filepath.Join(rootPath, string(models.New))
 	err := filepath.WalkDir(newPath, getNewFile)
 
 	return err
@@ -45,14 +42,14 @@ func getNewFile(path string, d fs.DirEntry, err error) error {
 		return nil
 	}
 
-	_, err = CreateCall(d.Name())
+	call, err := CreateCall(d.Name())
 
 	if err != nil {
 		log.Printf("ошибка добавления нового файла в бд: %v", err)
 		return err
 	}
 
-	err = os.Rename(path, filepath.Join(filepath.Dir(inProcessPath), d.Name()))
+	err = MoveByStatus(&call, models.New, models.Processing)
 	if err != nil {
 		log.Printf("ошибка перемещения файла: %v", err)
 		return err
@@ -61,7 +58,7 @@ func getNewFile(path string, d fs.DirEntry, err error) error {
 }
 
 func GetFileByte(f *models.Call) ([]byte, error) {
-	path := filepath.Join(filepath.Dir(inProcessPath), f.FileName)
+	path := filepath.Join(rootPath, string(f.Status), f.FileName)
 
 	fileByte, err := os.Open(path)
 	if err != nil {
@@ -72,9 +69,10 @@ func GetFileByte(f *models.Call) ([]byte, error) {
 	return io.ReadAll(fileByte)
 }
 
-func MoveDone(c *models.Call) error {
-	oldPath := filepath.Join(inProcessPath, c.FileName)
-	newPath := filepath.Join(donePath, c.FileName)
+func MoveByStatus(c *models.Call, oldStatus, newStatus models.StatusType) error {
+
+	oldPath := filepath.Join(rootPath, string(oldStatus), c.FileName)
+	newPath := filepath.Join(rootPath, string(newStatus), c.FileName)
 
 	return os.Rename(oldPath, newPath)
 }

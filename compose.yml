@@ -31,12 +31,14 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
       API_KEY: ${API_KEY}
       MODEL_URI: ${MODEL_URI}
     ports:
       - "8080:8080"
     volumes:
-      - tmp_storage:/app/tmp
+      - C:\\tmp\\storage:/app/tmp
+      #- tmp_storage:/app/tmp
     networks:
       - backend_net
 
@@ -45,4 +47,4 @@ networks:
 
 volumes:
   pg_data:
-  tmp_storage:
+  # tmp_storage:

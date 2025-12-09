@@ -11,10 +11,10 @@ type StatusType string
 
 // Возможные статусы обработки
 const (
-	NewProcessingStatus       StatusType = "new"
-	ProcessingStatus          StatusType = "processing"
-	CompletedProcessingStatus StatusType = "completed"
-	FailedProcessingStatus    StatusType = "failed"
+	New        StatusType = "new"
+	Processing StatusType = "processing"
+	Success    StatusType = "success"
+	Error      StatusType = "error"
 )
 
 type Call struct {

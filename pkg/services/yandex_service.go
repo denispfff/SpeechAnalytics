@@ -196,7 +196,7 @@ func processStream(call *models.Call, stream grpc.ServerStreamingClient[stt.Stre
 		if errors.Is(err, io.EOF) {
 			log.Printf("СЧЕТЧИК СТАТИСТИКИ: %d", count)
 			if count == 4 {
-				call.Status = models.CompletedProcessingStatus
+				call.Status = models.Success
 			}
 			break
 		}
