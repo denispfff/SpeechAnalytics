@@ -9,12 +9,14 @@ ___
 ### Инструкция по запуску кода локально
 #### Для запуска из исходников:
 Добавить .env файл в корень проекта с содержимым:
-`DB_HOST=`
-`DB_USER=`
-`DB_PASSWORD=`
-`DB_NAME=`
-`API_KEY=ключ к сервисам яндекс аналитики с доступом к SpeechKit`
-`MODEL_URI=url модели для распознавания, например "gpt://b1gj44runl5qb5a5l65n/yandexgpt-lite/latest"`
+```
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+API_KEY=ключ к сервисам яндекс аналитики с доступом к SpeechKit
+MODEL_URI=url модели для распознавания, например "gpt://b1gj44runl5qb5a5l65n/yandexgpt-lite/latest"
+```
 
 `go run ./cmd/main.go`
 
