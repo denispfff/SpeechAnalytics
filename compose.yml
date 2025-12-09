@@ -10,6 +10,11 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} || exit 1"]
+      interval: 10s       # Интервал проверок
+      timeout: 5s         # Максимальное время ожидания отклика
+      retries: 5          # Количество попыток
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
@@ -19,7 +24,8 @@ services:
     build: .
     container_name: ya_analytics_app
     depends_on:
-      - db
+      db:
+        condition: service_healthy  # Запустить app только после успешного health check
     environment:
       DB_HOST: db
       DB_USER: ${DB_USER}
